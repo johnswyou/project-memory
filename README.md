@@ -79,12 +79,6 @@ mkdir -p .claude/skills
 cp -r project-memory .claude/skills/
 ```
 
-### Install with `skilz`
-
-```bash
-skilz install SpillwaveSolutions_project-memory/project-memory
-```
-
 After installation, confirm that the chosen skill directory contains `project-memory/SKILL.md`.
 
 ## Package layout
