@@ -1,0 +1,54 @@
+[
+  {
+    "query": "Set up project memory for this repo so future Copilot sessions remember bug fixes, ADRs, and non-secret project facts.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you create docs/project_notes and wire AGENTS.md to use it for shared project memory?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add the CORS fix we just found to the bug log and note how to prevent it next time.",
+    "should_trigger": true
+  },
+  {
+    "query": "Record our decision to use Alembic instead of raw SQL scripts as an ADR.",
+    "should_trigger": true
+  },
+  {
+    "query": "Before we switch database libraries, check whether the repo already documented a decision about migrations.",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm starting a new Copilot session on a huge monorepo. Use project memory first so we don't relearn the architecture from scratch.",
+    "should_trigger": true
+  },
+  {
+    "query": "Before you explore the codebase, check whether project memory already has an architecture overview or known gotchas for the auth flow.",
+    "should_trigger": true
+  },
+  {
+    "query": "Search our shared memory for anything about callback URLs or local login ports before you propose a fix.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a Python migration script that backfills a new column in Postgres.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add coding-style rules for import ordering to AGENTS.md.",
+    "should_trigger": false
+  },
+  {
+    "query": "Summarize the repository README and tell me what this project does.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you open this Grafana dashboard URL and explain the spike in latency?",
+    "should_trigger": false
+  },
+  {
+    "query": "Rename these React props to match the design system naming guide.",
+    "should_trigger": false
+  }
+]

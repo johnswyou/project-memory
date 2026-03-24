@@ -1,0 +1,82 @@
+{
+  "skill_name": "project-memory",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Set up project memory for this repository. It already uses AGENTS.md and GitHub Copilot, so add the memory protocol there rather than creating a competing instruction file. Initialize docs/project_notes with the four core files and keep all recorded facts non-secret.",
+      "expected_output": "A docs/project_notes directory with the four core files plus an updated AGENTS.md memory section, without creating a new CLAUDE.md.",
+      "files": [
+        "evals/files/copilot-first/AGENTS.md"
+      ],
+      "assertions": [
+        "The result creates docs/project_notes with bugs.md, decisions.md, key_facts.md, and issues.md.",
+        "The result updates AGENTS.md with a project-memory protocol.",
+        "The result does not require creating a new CLAUDE.md for this scenario.",
+        "The result keeps key_facts guidance non-secret."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I am thinking about switching our migration tooling again. Check project memory before you recommend anything and tell me whether an ADR already covers this.",
+      "expected_output": "A response that consults the existing ADR, references the recorded migration decision, and avoids recommending a conflicting tool without justification.",
+      "files": [
+        "evals/files/decision-check/docs/project_notes/decisions.md"
+      ],
+      "assertions": [
+        "The response references the existing decision in decisions.md.",
+        "The response acknowledges that Alembic is the recorded migration choice.",
+        "The response does not casually recommend a conflicting migration tool without explaining why the decision would need to be revisited."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Update project memory with the new staging API URL in key_facts.md. Mention where the OAuth secret lives, but do not put the secret value in git.",
+      "expected_output": "An updated key_facts.md entry that adds the staging URL, records only the secret location, and avoids credential leakage.",
+      "files": [
+        "evals/files/safe-key-facts/docs/project_notes/key_facts.md"
+      ],
+      "assertions": [
+        "The result adds or updates a staging API URL entry.",
+        "The result treats the OAuth secret as a location-only reference.",
+        "The result does not introduce a password-bearing DSN, token, or secret literal."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I am starting a fresh session on this large repository. Use project memory before you explore the codebase and give me a concise briefing on the system map, key entry points, recent gotchas, and decisions that constrain the work.",
+      "expected_output": "A concise response that starts from project memory, uses the architecture overview as the fast-start context, and surfaces the most relevant decisions, gotchas, and non-secret facts before deeper exploration.",
+      "files": [
+        "evals/files/large-codebase/AGENTS.md",
+        "evals/files/large-codebase/docs/project_notes/architecture.md",
+        "evals/files/large-codebase/docs/project_notes/bugs.md",
+        "evals/files/large-codebase/docs/project_notes/decisions.md",
+        "evals/files/large-codebase/docs/project_notes/key_facts.md",
+        "evals/files/large-codebase/docs/project_notes/issues.md"
+      ],
+      "assertions": [
+        "The response starts from project memory instead of defaulting to broad repository exploration.",
+        "The response uses architecture.md to summarize the system map or key entry points.",
+        "The response references at least one ADR and one known gotcha from memory.",
+        "The response surfaces at least one non-secret fact relevant to local development or runtime behavior."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Before you change local login or callback handling, search project memory for anything about callback URLs, auth redirects, or frontend dev ports and summarize only the relevant findings.",
+      "expected_output": "A focused response that finds the recorded callback-url/auth-port context in project memory and avoids wandering into unrelated repository history.",
+      "files": [
+        "evals/files/large-codebase/AGENTS.md",
+        "evals/files/large-codebase/docs/project_notes/architecture.md",
+        "evals/files/large-codebase/docs/project_notes/bugs.md",
+        "evals/files/large-codebase/docs/project_notes/decisions.md",
+        "evals/files/large-codebase/docs/project_notes/key_facts.md",
+        "evals/files/large-codebase/docs/project_notes/issues.md"
+      ],
+      "assertions": [
+        "The response finds the callback allowlist bug or equivalent local-login gotcha in memory.",
+        "The response mentions the frontend dev ports or auth callback allowlist detail from memory.",
+        "The response stays focused on the auth callback topic rather than summarizing unrelated memory."
+      ]
+    }
+  ]
+}

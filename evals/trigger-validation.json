@@ -1,0 +1,46 @@
+[
+  {
+    "query": "Initialize a shared repository memory system for this project and make sure the agent checks it before suggesting architecture changes.",
+    "should_trigger": true
+  },
+  {
+    "query": "Log this Docker image-platform fix in our shared memory so we do not debug it again in six months.",
+    "should_trigger": true
+  },
+  {
+    "query": "Document the new Redis port and staging hostname in project memory without storing any secrets.",
+    "should_trigger": true
+  },
+  {
+    "query": "Did we already decide how migrations should work here? Check project memory before recommending anything.",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm joining this repo fresh. Check project memory first and tell me what architecture notes or entry points I should read before touching auth.",
+    "should_trigger": true
+  },
+  {
+    "query": "Look up whether project memory already captures any worker retry or idempotency gotchas before you inspect the queue code.",
+    "should_trigger": true
+  },
+  {
+    "query": "Please rename these React props to match the design system naming guide.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a Terraform module for a Cloud Run service.",
+    "should_trigger": false
+  },
+  {
+    "query": "Update the GitHub issue body with the final rollout checklist.",
+    "should_trigger": false
+  },
+  {
+    "query": "Store the OAuth client secret directly in markdown so every developer can copy it locally.",
+    "should_trigger": false
+  },
+  {
+    "query": "Trace how this endpoint validates JWTs by reading the codebase.",
+    "should_trigger": false
+  }
+]

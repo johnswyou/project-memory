@@ -1,298 +1,200 @@
 ---
 name: project-memory
-description: Set up and maintain a structured project memory system in docs/project_notes/ that tracks bugs with solutions, architectural decisions, key project facts, and work history. Use this skill when asked to "set up project memory", "track our decisions", "log a bug fix", "update project memory", or "initialize memory system". Configures both CLAUDE.md and AGENTS.md to maintain memory awareness across different AI coding tools.
+description: Use this skill when you need to set up or maintain shared project memory in `docs/project_notes/`, bootstrap a fresh session on a large codebase from previously recorded context, search prior bugs/decisions/facts before exploring from scratch, or record durable non-secret knowledge so future sessions do not relearn it.
+license: MIT
+compatibility: Works best when the agent can read and write Markdown files in the target repository and run bundled Python 3 scripts. Prefer `AGENTS.md` for Copilot-first repos, but adapt to existing `CLAUDE.md` or `.github/copilot-instructions.md` when those are already the project standard.
 ---
 
 # Project Memory
 
-## Table of Contents
-
-- [Overview](#overview)
-- [When to Use This Skill](#when-to-use-this-skill)
-- [Core Capabilities](#core-capabilities)
-  - [1. Initial Setup - Create Memory Infrastructure](#1-initial-setup---create-memory-infrastructure)
-  - [2. Configure CLAUDE.md - Memory-Aware Behavior](#2-configure-claudemd---memory-aware-behavior)
-  - [3. Configure AGENTS.md - Multi-Tool Support](#3-configure-agentsmd---multi-tool-support)
-  - [4. Searching Memory Files](#4-searching-memory-files)
-  - [5. Updating Memory Files](#5-updating-memory-files)
-  - [6. Memory File Maintenance](#6-memory-file-maintenance)
-- [Templates and References](#templates-and-references)
-- [Example Workflows](#example-workflows)
-- [Integration with Other Skills](#integration-with-other-skills)
-- [Success Criteria](#success-criteria)
-
-## Overview
-
-Maintain institutional knowledge for projects by establishing a structured memory system in `docs/project_notes/`. This skill sets up four key memory files (bugs, decisions, key facts, issues) and configures CLAUDE.md and AGENTS.md to automatically reference and maintain them. The result is a project that remembers past decisions, solutions to problems, and important configuration details across coding sessions and across different AI tools.
-
 ## When to Use This Skill
 
-Invoke this skill when:
+Use this skill when:
 
-- Starting a new project that will accumulate knowledge over time
-- The project already has recurring bugs or decisions that should be documented
-- The user asks to "set up project memory" or "track our decisions"
-- The user wants to log a bug fix, architectural decision, or completed work
-- Encountering a problem that feels familiar ("didn't we solve this before?")
-- Before proposing an architectural change (check existing decisions first)
-- Working on projects with multiple developers or AI tools (Claude Code, Cursor, etc.)
+- The user asks to set up project memory, track decisions, log a bug fix, update key facts, or initialize a shared memory system.
+- A fresh session should reuse previously recorded architecture, bugs, decisions, or non-secret facts before exploring a large or long-lived repository from scratch.
+- The task would benefit from checking whether the repository already remembers a similar bug, decision, configuration fact, misunderstanding, or gotcha before you propose a solution.
+- A completed task should be reflected in a lightweight shared work log because future sessions are likely to need it.
 
-## Core Capabilities
+Do not use this skill for private scratch notes, secrets, or one-off personal task tracking.
 
-### 1. Initial Setup - Create Memory Infrastructure
+## Keep Context Lean
 
-When invoked for the first time in a project, create the following structure:
+Load only the files you need:
 
-```
-docs/
-└── project_notes/
-    ├── bugs.md         # Bug log with solutions
-    ├── decisions.md    # Architectural Decision Records
-    ├── key_facts.md    # Project configuration and constants
-    └── issues.md       # Work log with ticket references
-```
+- Read `references/instruction_file_strategy.md` if the instruction-file choice is unclear or the repository uses more than one agent-instruction file.
+- Read `references/large_codebase_patterns.md` when the repository is large, long-lived, a monorepo, or the user wants a fast orientation briefing before deeper exploration.
+- Read the specific template in `references/` only for the memory file you are creating or normalizing.
+- Read `assets/shared_memory_protocol.md` when inserting or refreshing a project-memory section in an instruction file.
+- Read `references/quick_reference.md` only if the user wants a concise map of which file to update.
+- Use `scripts/summarize_project_memory.py <project-root>` when you want a concise project-memory briefing before reading full files.
+- Use `scripts/search_project_memory.py <project-root> <query>` when the task is topic-specific and you want to avoid loading every memory file.
 
-**Directory naming rationale:** Using `docs/project_notes/` instead of `memory/` makes it look like standard engineering organization, not AI-specific tooling. This increases adoption and maintenance by human developers.
+## Core Workflow
 
-**Initial file content:** Copy templates from the `references/` directory in this skill:
-- Use `references/bugs_template.md` for initial `bugs.md`
-- Use `references/decisions_template.md` for initial `decisions.md`
-- Use `references/key_facts_template.md` for initial `key_facts.md`
-- Use `references/issues_template.md` for initial `issues.md`
+### 1. Inspect the Project First
 
-Each template includes format examples and usage tips.
+- Check whether `docs/project_notes/` already exists.
+- Check which instruction files already exist: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`.
+- Preserve user-authored content. Prefer targeted edits over whole-file rewrites.
 
-### 2. Configure CLAUDE.md - Memory-Aware Behavior
+### 2. Bootstrap a Fresh Session Deliberately
 
-Add or update the following section in the project's `CLAUDE.md` file:
+When the user wants orientation, context reuse, or help on a large codebase:
 
-```markdown
-## Project Memory System
+- Check `docs/project_notes/architecture.md` first if it exists. Treat it as the fast-start system map for future sessions.
+- Then read only the minimum additional memory that matches the task:
+  - `decisions.md` for architectural constraints and superseded choices
+  - `key_facts.md` for non-secret configuration facts
+  - recent `bugs.md` entries for recurring failures or prior misunderstandings
+  - recent `issues.md` entries for work-in-flight or handoff context
+- Use `scripts/summarize_project_memory.py <project-root>` when you need a concise briefing before deeper repo exploration.
+- Use `scripts/search_project_memory.py <project-root> <query>` when the topic is narrow and you want a fast topic-specific lookup.
+- If project memory conflicts with newer evidence from the repository or external systems, call out the conflict instead of assuming the memory is current.
 
-This project maintains institutional knowledge in `docs/project_notes/` for consistency across sessions.
+### 3. Choose Instruction Files Deliberately
 
-### Memory Files
+- Prefer `AGENTS.md` for GitHub Copilot-first repositories.
+- If `AGENTS.md` already exists, update it.
+- If `CLAUDE.md` already exists, keep its project-memory guidance aligned.
+- If `.github/copilot-instructions.md` already exists, update it instead of creating an extra Copilot-specific file.
+- If none of those files exist, ask before creating a new `AGENTS.md`.
+- Do not create multiple new instruction files in one pass.
 
-- **bugs.md** - Bug log with dates, solutions, and prevention notes
-- **decisions.md** - Architectural Decision Records (ADRs) with context and trade-offs
-- **key_facts.md** - Project configuration, credentials, ports, important URLs
-- **issues.md** - Work log with ticket IDs, descriptions, and URLs
+### 4. Create or Normalize Memory Files
 
-### Memory-Aware Protocols
+Ensure `docs/project_notes/` contains these core files:
 
-**Before proposing architectural changes:**
-- Check `docs/project_notes/decisions.md` for existing decisions
-- Verify the proposed approach doesn't conflict with past choices
-- If it does conflict, acknowledge the existing decision and explain why a change is warranted
+- `bugs.md`
+- `decisions.md`
+- `key_facts.md`
+- `issues.md`
 
-**When encountering errors or bugs:**
-- Search `docs/project_notes/bugs.md` for similar issues
-- Apply known solutions if found
-- Document new bugs and solutions when resolved
+For large, long-lived, or multi-component repositories, recommend or create this optional high-signal file when the user asks or the repository already uses it:
 
-**When looking up project configuration:**
-- Check `docs/project_notes/key_facts.md` for credentials, ports, URLs, service accounts
-- Prefer documented facts over assumptions
+- `architecture.md`
 
-**When completing work on tickets:**
-- Log completed work in `docs/project_notes/issues.md`
-- Include ticket ID, date, brief description, and URL
+Use these templates for missing files:
 
-**When user requests memory updates:**
-- Update the appropriate memory file (bugs, decisions, key_facts, or issues)
-- Follow the established format and style (bullet lists, dates, concise entries)
+- `references/architecture_template.md` for `architecture.md`
+- `references/bugs_template.md`
+- `references/decisions_template.md`
+- `references/key_facts_template.md`
+- `references/issues_template.md`
 
-### Style Guidelines for Memory Files
+When files already exist:
 
-- **Prefer bullet lists over tables** for simplicity and ease of editing
-- **Keep entries concise** (1-3 lines for descriptions)
-- **Always include dates** for temporal context
-- **Include URLs** for tickets, documentation, monitoring dashboards
-- **Manual cleanup** of old entries is expected (not automated)
-```
+- Keep the existing structure if it is clear and useful.
+- Normalize only the sections you touch.
+- Avoid reformatting the whole file unless the user asked for cleanup or the current format blocks reliable maintenance.
 
-### 3. Configure AGENTS.md - Multi-Tool Support
+### 5. Read Memory Before Answering
 
-If the project has an `AGENTS.md` file (used for agent workflows or multi-tool projects), add the same memory protocols. This ensures consistency whether using Claude Code, Cursor, GitHub Copilot, or other AI tools.
+Before large-codebase exploration or architectural work:
 
-**If AGENTS.md exists:** Add the same "Project Memory System" section as above.
+- Check `docs/project_notes/architecture.md` first if present.
+- Check `docs/project_notes/decisions.md` before proposing architecture or workflow changes.
+- If an ADR already covers the topic, follow it or explicitly explain why revisiting it is warranted.
 
-**If AGENTS.md doesn't exist:** Ask the user if they want to create it. Many projects use multiple AI tools and benefit from shared memory protocols.
+When a bug or failure looks familiar:
 
-### 4. Searching Memory Files
+- Check `docs/project_notes/bugs.md`.
+- Reuse proven fixes when they apply.
+- If the file contains conflicting guidance, call that out instead of guessing.
 
-When encountering problems or making decisions, proactively search memory files:
+When you need project configuration:
 
-**Search bugs.md:**
-```bash
-# Look for similar errors
-grep -i "connection refused" docs/project_notes/bugs.md
+- Check `docs/project_notes/key_facts.md`.
+- Treat it as non-secret reference material only.
+- Prefer named secret locations over secret values.
 
-# Find bugs by date range
-grep "2025-01" docs/project_notes/bugs.md
-```
-
-**Search decisions.md:**
-```bash
-# Check for decisions about a technology
-grep -i "database" docs/project_notes/decisions.md
-
-# Find all ADRs
-grep "^### ADR-" docs/project_notes/decisions.md
-```
-
-**Search key_facts.md:**
-```bash
-# Find database connection info
-grep -A 5 "Database" docs/project_notes/key_facts.md
-
-# Look up service accounts
-grep -i "service account" docs/project_notes/key_facts.md
-```
-
-**Use Grep tool for more complex searches:**
-- Search across all memory files: `Grep(pattern="oauth", path="docs/project_notes/")`
-- Context-aware search: `Grep(pattern="bug", path="docs/project_notes/bugs.md", -A=3, -B=3)`
-
-### 5. Updating Memory Files
-
-When the user requests updates or when documenting resolved issues, update the appropriate memory file:
-
-**Adding a bug entry:**
-```markdown
-### YYYY-MM-DD - Brief Bug Description
-- **Issue**: What went wrong
-- **Root Cause**: Why it happened
-- **Solution**: How it was fixed
-- **Prevention**: How to avoid it in the future
-```
-
-**Adding a decision:**
-```markdown
-### ADR-XXX: Decision Title (YYYY-MM-DD)
-
-**Context:**
-- Why the decision was needed
-- What problem it solves
-
-**Decision:**
-- What was chosen
-
-**Alternatives Considered:**
-- Option 1 -> Why rejected
-- Option 2 -> Why rejected
-
-**Consequences:**
-- Benefits
-- Trade-offs
-```
-
-**Adding key facts:**
-- Organize by category (GCP Project, Database, API, Local Development, etc.)
-- Use bullet lists for clarity
-- Include both production and development details
-- Add URLs for easy navigation
-- See `references/key_facts_template.md` for security guidelines on what NOT to store
-
-**Adding work log entry:**
-```markdown
-### YYYY-MM-DD - TICKET-ID: Brief Description
-- **Status**: Completed / In Progress / Blocked
-- **Description**: 1-2 line summary
-- **URL**: https://jira.company.com/browse/TICKET-ID
-- **Notes**: Any important context
-```
-
-### 6. Memory File Maintenance
-
-**Periodically clean old entries:**
-- User is responsible for manual cleanup (no automation)
-- Remove very old bug entries (6+ months) that are no longer relevant
-- Archive completed work from issues.md (3+ months old)
-- Keep all decisions (they're lightweight and provide historical context)
-- Update key_facts.md when project configuration changes
-
-**Conflict resolution:**
-- If proposing something that conflicts with decisions.md, explain why revisiting the decision is warranted
-- Update the decision entry if the choice changes
-- Add date of revision to show evolution
-
-## Templates and References
-
-This skill includes template files in `references/` that demonstrate proper formatting:
-
-- **references/bugs_template.md** - Bug entry format with examples
-- **references/decisions_template.md** - ADR format with examples
-- **references/key_facts_template.md** - Key facts organization with examples (includes security guidelines)
-- **references/issues_template.md** - Work log format with examples
-
-When creating initial memory files, copy these templates to `docs/project_notes/` and customize them for the project.
-
-## Example Workflows
-
-### Scenario 1: Encountering a Familiar Bug
-
-```
-User: "I'm getting a 'connection refused' error from the database"
--> Search docs/project_notes/bugs.md for "connection"
--> Find previous solution: "Use AlloyDB Auth Proxy on port 5432"
--> Apply known fix
-```
-
-### Scenario 2: Proposing an Architectural Change
-
-```
-Internal: "User might benefit from using SQLAlchemy for migrations"
--> Check docs/project_notes/decisions.md
--> Find ADR-002: Already decided to use Alembic
--> Use Alembic instead, maintaining consistency
-```
-
-### Scenario 3: User Requests Memory Update
-
-```
-User: "Add that CORS fix to our bug log"
--> Read docs/project_notes/bugs.md
--> Add new entry with date, issue, solution, prevention
--> Confirm addition to user
-```
-
-### Scenario 4: Looking Up Project Configuration
-
-```
-Internal: "Need to connect to database"
--> Check docs/project_notes/key_facts.md
--> Find Database Configuration section
--> Use documented connection string and credentials
-```
-
-## Tips for Effective Memory Management
-
-1. **Be proactive**: Check memory files before proposing solutions
-2. **Be concise**: Keep entries brief (1-3 lines for descriptions)
-3. **Be dated**: Always include dates for temporal context
-4. **Be linked**: Include URLs to tickets, docs, monitoring dashboards
-5. **Be selective**: Focus on recurring or instructive issues, not every bug
-
-## Integration with Other Skills
-
-The project-memory skill complements other skills:
-
-- **requirements-documenter**: Requirements -> Decisions (ADRs reference requirements)
-- **root-cause-debugger**: Bug diagnosis -> Bug log (document solutions after fixes)
-- **code-quality-reviewer**: Quality issues -> Decisions (document quality standards)
-- **docs-sync-editor**: Code changes -> Key facts (update when config changes)
-
-When using these skills together, consider updating memory files as a follow-up action.
+When you need recent context or handoff information:
+
+- Check `docs/project_notes/issues.md`.
+
+### 6. Write Memory Carefully
+
+After initial setup, update memory files only when:
+
+- The user explicitly asks.
+- The task clearly includes documentation or memory maintenance.
+- A repository instruction file already says project memory must be updated as part of the workflow.
+
+If an update would help but was not requested:
+
+- Suggest the update briefly.
+- Do not silently add retrospective documentation.
+
+When a new lesson should help future sessions orient faster, write it in the smallest relevant place:
+
+- `architecture.md` for stable system shape, component boundaries, key entry points, critical flows, and durable gotchas
+- `bugs.md` for recurring or instructive failures
+- `decisions.md` for durable choices and supersession history
+- `key_facts.md` for frequently needed non-secret configuration facts
+- `issues.md` for lightweight dated work history
+
+Use these formatting rules:
+
+- Dates are `YYYY-MM-DD`.
+- Prefer short bullet lists over tables.
+- Keep entries concise enough to scan quickly.
+- Use `**Related**:` lines for cross-file references when helpful.
+- Mark deprecated or superseded guidance explicitly instead of silently rewriting history.
+- Never put secret values, credential payloads, or password-bearing DSNs in tracked files.
+
+### 7. File-Specific Rules
+
+#### `architecture.md`
+
+- Use this file as the fast-start system map for large or long-lived repositories.
+- Capture component responsibilities, key entry points, critical flows, durable gotchas, and change hazards.
+- Keep it terse. This file should help a fresh session decide what to inspect next, not replace the codebase.
+- Use `references/architecture_template.md` before creating or restructuring the file.
+
+#### `bugs.md`
+
+- Log recurring or instructive issues.
+- Each entry should capture `Issue`, `Root Cause`, `Solution`, and `Prevention`.
+- If a bug teaches a durable repo-level sharp edge, mirror a concise note in `architecture.md` when appropriate.
+- Use `references/bugs_template.md` before creating a new file or normalizing the format.
+
+#### `decisions.md`
+
+- Use ADR headers like `ADR-001`.
+- Include `Context`, `Decision`, `Alternatives Considered`, and `Consequences`.
+- Keep old ADRs when decisions change; mark them as superseded instead of deleting them.
+- If an ADR changes how future sessions should orient themselves, refresh `architecture.md` as well.
+- Use `references/decisions_template.md` before creating or restructuring the file.
+
+#### `key_facts.md`
+
+- Store only non-secret facts: URLs, ports, project IDs, service-account emails, environment names, and secret locations.
+- Never store passwords, tokens, private keys, raw connection strings with credentials, or shell placeholders that imply secret values.
+- Keep the highest-signal facts near the top of each section because fresh sessions may skim this file quickly.
+- Use `references/key_facts_template.md` before creating or expanding the file.
+
+#### `issues.md`
+
+- Use one dated entry per task, ticket, or work item.
+- Do not switch to weekly grouped summaries unless the repository already uses them and the user wants to keep them.
+- Promote durable lessons out of `issues.md` into `architecture.md`, `bugs.md`, or `decisions.md` when they will matter across sessions.
+- Use `references/issues_template.md` before creating or normalizing the file.
+
+### 8. Validate and Summarize Before Finishing
+
+After setup or memory edits:
+
+- Run `python3 scripts/validate_project_memory.py <project-root>` when the validator is available.
+- Fix validation errors and rerun.
+- If available, run `python3 scripts/summarize_project_memory.py <project-root>` after larger memory updates to sanity-check whether a fresh session would get a useful briefing.
+- If validation or summary warnings matter to the user, mention them in your handoff.
 
 ## Success Criteria
 
-This skill is successfully deployed when:
+This skill is successful when:
 
-- `docs/project_notes/` directory exists with all four memory files
-- CLAUDE.md includes "Project Memory System" section with protocols
-- AGENTS.md includes the same protocols (if file exists or user requested)
-- Memory files follow template format and style guidelines
-- AI assistant checks memory files before proposing changes
-- User can easily request memory updates ("add this to bugs.md")
-- Memory files look like standard engineering documentation, not AI artifacts
+- The target repository has a usable `docs/project_notes/` directory with the four core files, plus `architecture.md` when the repository is large enough to benefit from a fast-start overview.
+- The repository's relevant instruction file(s) point agents to that memory system without creating unnecessary duplicates.
+- A fresh session can reuse memory to narrow exploration before diving into the full codebase.
+- Memory entries stay concise, maintainable, and free of secrets.
+- The agent checked project memory before making architecture, debugging, or configuration recommendations when that context was relevant.
